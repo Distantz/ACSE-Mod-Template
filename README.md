@@ -1,11 +1,11 @@
 # ACSE Mod Template
-This repository is a template for an ACSE Cobra Engine mod. This repository should be located within the `*GameName*\Win64\ovldata\` folder.
+This repository is a template for an ACSE Cobra Engine mod. This repository should be located within the `GAME_NAME\Win64\ovldata\` folder.
 
 ## First Setup
 ### Renames
 There are two find and replace operations you must complete on this repository:
 - The text `INSERT_MODNAME_HERE` must be changed to your mods name across every file in the repository. 
-  - Additionally, the root folder directory should be named like `*GAME_NAME*\Win64\ovldata\INSERT_MODNAME_HERE\`, with the `INSERT_MODNAME_HERE` being changed. 
+  - Additionally, the root folder directory should be named like `GAME_NAME\Win64\ovldata\INSERT_MODNAME_HERE\`, with the `INSERT_MODNAME_HERE` being changed. 
   - Additionally, the file `INSERT_MODNAME_HEREluadatabase.lua` must also be renamed.
 - The text `INSERT_UUID_HERE` must be changed to a 128-bit UUID. You can generate such a UUID here: https://www.uuidgenerator.net/.
 

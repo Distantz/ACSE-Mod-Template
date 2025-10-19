@@ -3,8 +3,12 @@
 -- you must either do global.tostring() or local tostring = global.tostring, then use that global function.
 -- You can see that happening here with the table local.
 local global = _G
-local api = _G.api
-local table = _G.table
+local table = global.table
+
+-- Since api isn't default lua, this has a warning.
+-- Disable it so we don't get weird errors if using LuaCATS.
+---@diagnostic disable-next-line: undefined-field
+local api = global.api
 
 -- Optional: ForgeUtils has logger support! You should use it if you have ForgeUtils installed #plug
 -- We require the logger table (which is returned) and call the Get method which returns a logger with

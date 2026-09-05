@@ -3,10 +3,67 @@
 import sys
 import subprocess
 import argparse
+import hashlib
 import ui_package as pkg
 from pathlib import Path
 import multiprocessing
 from multiprocessing.pool import Pool
+
+# Hash contents first to avoid needless rebuilds
+
+# File types that are outputs of this build script rather than source
+# content. They should be excluded when hashing an OVL folder, otherwise the
+# hash would change after every build even when nothing actually changed.
+HASH_EXCLUDED_EXTENSIONS = {".ovl", ".ppuipkg"}
+
+# Where per-entry content hashes are cached
+CACHE_DIRNAME = ".build_cache"
+
+def compute_folder_hash(folder: Path) -> str:
+    """
+    Compute a deterministic content hash for everything inside `folder`.
+
+    Hashes relative path, file size, and file content for every file found,
+    in sorted order, so the result only depends on the actual file tree
+    contents.
+    """
+    hasher = hashlib.sha256()
+
+    if not folder.exists():
+        return ""
+
+    files = sorted(
+        p for p in folder.rglob("*")
+        if p.is_file() and p.suffix.lower() not in HASH_EXCLUDED_EXTENSIONS
+    )
+
+    for f in files:
+        rel = f.relative_to(folder).as_posix()
+        hasher.update(rel.encode("utf-8"))
+        hasher.update(str(f.stat().st_size).encode("utf-8"))
+        with open(f, "rb") as fh:
+            for chunk in iter(lambda: fh.read(1 << 20), b""):
+                hasher.update(chunk)
+
+    return hasher.hexdigest()
+
+def _cache_file_for(manifest_dir: Path, line: str) -> Path:
+    """Path to the cached hash file for a given .ovlpaths entry."""
+    cache_dir = manifest_dir / CACHE_DIRNAME
+    cache_dir.mkdir(exist_ok=True)
+    safe_name = line.lstrip("./").replace("\\", "_").replace("/", "_")
+    return cache_dir / f"{safe_name}.hash"
+
+def _read_cached_hash(cache_file: Path) -> str:
+    if cache_file.exists():
+        try:
+            return cache_file.read_text().strip()
+        except OSError:
+            return ""
+    return ""
+
+def _write_cached_hash(cache_file: Path, value: str) -> None:
+    cache_file.write_text(value)
 
 def process_uipackages(manifest_dir : Path, ovl_path_line):
     """
